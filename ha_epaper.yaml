@@ -1,0 +1,411 @@
+
+esphome:
+  name: dashboard
+  friendly_name: dashboard
+
+esp32:
+  board: esp32-c3-devkitm-1
+  framework:
+    type: arduino
+
+# Enable logging
+logger:
+
+# Enable Home Assistant API
+api:
+  encryption:
+    key: "jBgx0v+Y9eKiQmYTkS0CnHgtDowNDZqgFU26Z2VTYzM="
+
+ota:
+  - platform: esphome
+    password: "9f78b53ef21c65d689f7408bb1ebe728"
+
+# -------------------------------------- Keep your code above, change your code below --------------------------------------
+
+globals:
+  - id: wifi_status
+    type: int
+    restore_value: no
+    initial_value: "0"
+  - id: first_update_done
+    type: bool
+    restore_value: no
+    initial_value: "false"
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+  on_connect:
+    then:
+      - lambda: |-
+          id(wifi_status) = 1;
+  on_disconnect:
+    then:
+      - lambda: |-
+          id(wifi_status) = 0;
+
+
+captive_portal:
+
+# Here is deep sleep part
+deep_sleep:
+  id: deep_sleep_1
+  run_duration: 1min  # Device wake up and run 60s (enough to pull data and update)
+  sleep_duration: 60min  # deep sleep for 1h
+
+script:
+  - id: update_display
+    then:
+      - component.update: my_display
+
+interval:
+  # Condition: wifi connected && data retrieved && first time
+  - interval: 10s  # Check every second
+    then:
+      - if:
+          condition:
+            and:
+              - wifi.connected:
+              - lambda: "return !id(ha_calendar_event_1).state.empty();"
+              - lambda: "return !id(first_update_done);"
+          then:
+            - lambda: |-
+                ESP_LOGD("Display", "Updating Display...");
+            - script.execute: update_display  # Refresh immediately
+            - lambda: "id(first_update_done) = true;"
+  - interval: 59s  # run this command before 1s of run_duration end
+    then:
+      - logger.log: "Entering deep sleep now..."
+
+
+image:
+  - file: image/wifi.jpg
+    type: BINARY
+    id: esphome_logo
+    resize: 400x240
+    invert_alpha: true
+
+# Connect to Home Assistant to get time
+time:
+  - platform: homeassistant
+    id: homeassistant_time
+
+text_sensor:
+  - platform: homeassistant
+    id: ha_calendar_event_1
+    entity_id: calendar.calendar
+    attribute: "message"
+  - platform: homeassistant
+    id: ha_calendar_start_time_1
+    entity_id: calendar.calendar
+    attribute: "start_time"
+  - platform: homeassistant
+    id: ha_calendar_end_time_1
+    entity_id: calendar.calendar
+    attribute: "end_time"
+
+  - platform: homeassistant
+    id: ha_calendar_event_2
+    entity_id: calendar.epaper_event
+    attribute: "message"
+  - platform: homeassistant
+    id: ha_calendar_start_time_2
+    entity_id: calendar.epaper_event
+    attribute: "start_time"
+  - platform: homeassistant
+    id: ha_calendar_end_time_2
+    entity_id: calendar.epaper_event
+    attribute: "end_time"
+
+  - platform: homeassistant
+    id: ha_calendar_event_3
+    entity_id: calendar.new_calendar
+    attribute: "message"
+  - platform: homeassistant
+    id: ha_calendar_start_time_3
+    entity_id: calendar.new_calendar
+    attribute: "start_time"
+  - platform: homeassistant
+    id: ha_calendar_end_time_3
+    entity_id: calendar.new_calendar
+    attribute: "end_time"
+
+  - platform: homeassistant
+    entity_id: weather.forecast_home
+    id: myWeather
+  - platform: homeassistant
+    entity_id: weather.forecast_home
+    id: temp
+    attribute: "temperature"
+  - platform: homeassistant
+    entity_id: weather.forecast_home
+    id: humi
+    attribute: "humidity"
+  - platform: homeassistant
+    entity_id: weather.forecast_home
+    id: press
+    attribute: "pressure"
+  - platform: homeassistant
+    entity_id: weather.forecast_home
+    id: wind
+    attribute: "wind_speed"
+
+font:
+  - file: "fonts/Montserrat-Black.ttf"
+    id: web_font
+    size: 20
+  - file: "fonts/Montserrat-Black.ttf"
+    id: data_font
+    size: 30
+  - file: "fonts/Montserrat-Black.ttf"
+    id: sensor_font
+    size: 22
+
+  - file: "gfonts://Inter@700" #
+    id: font1
+    size: 24
+
+  - file: 'fonts/materialdesignicons-webfont.ttf' # Directory to save ttf file
+    id: font_mdi_large
+    size: 200
+    glyphs: &mdi-weather-glyphs # https://pictogrammers.com/library/mdi/
+      - "\U000F050F" # Thermometer
+      - "\U000F058E" # Humidity
+      - "\U000F059D" # Wind speed
+      - "\U000F0D60" # Atmospheric pressure
+      - "\U000F0590" # Cloudy weather
+      - "\U000F0596" # Rainy weather
+      - "\U000F0598" # Snowy weather
+      - "\U000F0599" # Sunny weather
+  - file: 'fonts/materialdesignicons-webfont.ttf'
+    id: font_weather # Copy the above icon and change the size to 40
+    size: 200
+    glyphs: *mdi-weather-glyphs
+  - file: 'fonts/materialdesignicons-webfont.ttf'
+    id: img_font_sensor # Copy the above icon and change the size to 40
+    size: 70
+    glyphs: *mdi-weather-glyphs
+
+spi:
+  clk_pin: GPIO8
+  mosi_pin: GPIO10
+
+display:
+  - platform: waveshare_epaper
+    id: my_display
+    cs_pin: GPIO3
+    dc_pin: GPIO5
+    busy_pin: 
+      number: GPIO4
+      inverted: true
+    reset_pin: GPIO2
+    model: 7.50inv2
+    update_interval: 50s
+    lambda: |-
+      if(id(wifi_status) == 0){
+        it.image(180, 0, id(esphome_logo));
+        it.print(230, 300, id(data_font), "WI-FI CONNECTING");
+      }else{
+        // Draw weather images here
+        std::string weather_string = id(myWeather).state.c_str();
+        if(weather_string == "rainy" || weather_string == "lightning" || weather_string == "pouring"){
+          // Draw rainy weather image
+          it.printf(120, 85, id(font_weather), TextAlign::CENTER, "\U000F0596");
+        }else if(weather_string == "snowy"){
+          // Draw snowy weather image
+          it.printf(120, 85, id(font_weather), TextAlign::CENTER, "\U000F0598");
+        }else if(weather_string == "sunny" || weather_string == "windy"){
+          // Draw sunny weather image
+          it.printf(120, 85, id(font_weather), TextAlign::CENTER, "\U000F0599");
+        }else{
+          // Draw cloudy weather image
+          it.printf(120, 85, id(font_weather), TextAlign::CENTER, "\U000F0590");
+        }
+
+        auto time_now = id(homeassistant_time).now();
+        // Month conversion
+        const char* months[] = {
+          "January", "February", "March", "April", "May", "June",
+          "July", "August", "September", "October", "November", "December"
+        };
+        const char* month_str = months[time_now.month - 1];  // Month index starts from 0
+        // Get the day
+        int day = time_now.day_of_month;
+        // Draw the date
+        it.printf(250, 110, id(data_font), "%d %s", day, month_str);
+        // Get the day of the week
+        const char* days[] = {"Saturday", "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday"};
+        const char* day_of_week = days[time_now.day_of_week];
+        it.printf(250, 70, id(data_font), "%s", day_of_week);
+
+        int x = 20, y = 180, w = 180, h = 120, r = 10, thickness = 4;
+        // Draw four borders
+        it.filled_rectangle(x + r, y, w - 2 * r, thickness); // Top border
+        it.filled_rectangle(x + r, y + h - thickness, w - 2 * r, thickness); // Bottom border
+        it.filled_rectangle(x, y + r, thickness, h - 2 * r); // Left border
+        it.filled_rectangle(x + w - thickness, y + r, thickness, h - 2 * r); // Right border
+        // Draw four rounded corners
+        it.filled_circle(x + r, y + r, r); // Top-left corner
+        it.filled_circle(x + w - r, y + r, r); // Top-right corner
+        it.filled_circle(x + r, y + h - r, r); // Bottom-left corner
+        it.filled_circle(x + w - r, y + h - r, r); // Bottom-right corner
+        // Fill the inside with black to form a border
+        it.filled_rectangle(x + thickness, y + thickness, w - 2 * thickness, h - 2 * thickness, COLOR_OFF);
+        // Temperature
+        it.printf(x+10, y+10, id(sensor_font), "Temperature");
+        it.printf(x+45, y+75, id(img_font_sensor), TextAlign::CENTER, "\U000F050F");
+        // Get temperature data
+        it.printf(x+75,y+65, id(data_font), "%s°C", id(temp).state.c_str());
+
+        x = 220;
+        y = 180;
+        // Draw four borders
+        it.filled_rectangle(x + r, y, w - 2 * r, thickness); // Top border
+        it.filled_rectangle(x + r, y + h - thickness, w - 2 * r, thickness); // Bottom border
+        it.filled_rectangle(x, y + r, thickness, h - 2 * r); // Left border
+        it.filled_rectangle(x + w - thickness, y + r, thickness, h - 2 * r); // Right border
+        // Draw four rounded corners
+        it.filled_circle(x + r, y + r, r); // Top-left corner
+        it.filled_circle(x + w - r, y + r, r); // Top-right corner
+        it.filled_circle(x + r, y + h - r, r); // Bottom-left corner
+        it.filled_circle(x + w - r, y + h - r, r); // Bottom-right corner
+        // Fill the inside with black to form a border
+        it.filled_rectangle(x + thickness, y + thickness, w - 2 * thickness, h - 2 * thickness, COLOR_OFF);
+        // Humidity
+        it.printf(x+10, y+10, id(sensor_font), "Humidity");
+        it.printf(x+45, y+75, id(img_font_sensor), TextAlign::CENTER, "\U000F058E");
+        // Get humidity data
+        it.printf(x+75,y+65, id(data_font), "%s%%", id(humi).state.c_str());
+
+        x = 20;
+        y = 320;
+        // Draw four borders
+        it.filled_rectangle(x + r, y, w - 2 * r, thickness); // Top border
+        it.filled_rectangle(x + r, y + h - thickness, w - 2 * r, thickness); // Bottom border
+        it.filled_rectangle(x, y + r, thickness, h - 2 * r); // Left border
+        it.filled_rectangle(x + w - thickness, y + r, thickness, h - 2 * r); // Right border
+        // Draw four rounded corners
+        it.filled_circle(x + r, y + r, r); // Top-left corner
+        it.filled_circle(x + w - r, y + r, r); // Top-right corner
+        it.filled_circle(x + r, y + h - r, r); // Bottom-left corner
+        it.filled_circle(x + w - r, y + h - r, r); // Bottom-right corner
+        // Fill the inside with black to form a border
+        it.filled_rectangle(x + thickness, y + thickness, w - 2 * thickness, h - 2 * thickness, COLOR_OFF);
+        // Air Pressure
+        it.printf(x+10, y+10, id(sensor_font), "Air Pressure");
+        it.printf(x+45, y+75, id(img_font_sensor), TextAlign::CENTER, "\U000F0D60");
+        // Get atmospheric pressure data
+        it.printf(x+85,y+50, id(data_font), "%s", id(press).state.c_str());
+        it.printf(x+85,y+78, id(sensor_font), "mbar");
+
+        x = 220;
+        y = 320;
+        // Draw four borders
+        it.filled_rectangle(x + r, y, w - 2 * r, thickness); // Top border
+        it.filled_rectangle(x + r, y + h - thickness, w - 2 * r, thickness); // Bottom border
+        it.filled_rectangle(x, y + r, thickness, h - 2 * r); // Left border
+        it.filled_rectangle(x + w - thickness, y + r, thickness, h - 2 * r); // Right border
+        // Draw four rounded corners
+        it.filled_circle(x + r, y + r, r); // Top-left corner
+        it.filled_circle(x + w - r, y + r, r); // Top-right corner
+        it.filled_circle(x + r, y + h - r, r); // Bottom-left corner
+        it.filled_circle(x + w - r, y + h - r, r); // Bottom-right corner
+        // Fill the inside with black to form a border
+        it.filled_rectangle(x + thickness, y + thickness, w - 2 * thickness, h - 2 * thickness, COLOR_OFF);
+        // Wind Speed
+        it.printf(x+10, y+10, id(sensor_font), "Wind Speed");
+        it.printf(x+45, y+75, id(img_font_sensor), TextAlign::CENTER, "\U000F059D");
+        // Get wind speed data
+        it.printf(x+85,y+50, id(data_font), "%s", id(wind).state.c_str());
+        it.printf(x+85,y+78, id(sensor_font), "mph");
+
+        // Draw a vertical line
+        it.filled_rectangle(430, 30, 5, 430);
+        // Right section
+        it.printf(540, 40, id(data_font), "Calendar");
+
+        // Define event structure
+        struct Event {
+            std::string message;
+            std::string start_time;
+            std::string end_time;
+            time_t start_timestamp;
+        };
+
+        // Parse time string to time_t (UNIX timestamp)
+        auto parse_time = [](const std::string &time_str) -> time_t {
+            struct tm timeinfo = {};
+            if (strptime(time_str.c_str(), "%Y-%m-%d %H:%M:%S", &timeinfo) == nullptr) {
+                return 0;  // Invalid time
+            }
+            return mktime(&timeinfo);
+        };
+
+        // Create event list
+        std::vector<Event> events = {
+            {id(ha_calendar_event_1).state, id(ha_calendar_start_time_1).state, id(ha_calendar_end_time_1).state, parse_time(id(ha_calendar_start_time_1).state)},
+            {id(ha_calendar_event_2).state, id(ha_calendar_start_time_2).state, id(ha_calendar_end_time_2).state, parse_time(id(ha_calendar_start_time_2).state)},
+            {id(ha_calendar_event_3).state, id(ha_calendar_start_time_3).state, id(ha_calendar_end_time_3).state, parse_time(id(ha_calendar_start_time_3).state)}
+        };
+        ESP_LOGD("myCalendar", "Start Time: %s -> %ld", id(ha_calendar_start_time_1).state.c_str(), parse_time(id(ha_calendar_start_time_1).state));
+        ESP_LOGD("myCalendar", "Start Time: %s -> %ld", id(ha_calendar_start_time_2).state.c_str(), parse_time(id(ha_calendar_start_time_2).state));
+        ESP_LOGD("myCalendar", "Start Time: %s -> %ld", id(ha_calendar_start_time_3).state.c_str(), parse_time(id(ha_calendar_start_time_3).state));
+
+        // Filter invalid events (start_timestamp == 0)
+        events.erase(std::remove_if(events.begin(), events.end(), [](const Event &e) { return e.start_timestamp == 0; }), events.end());
+
+        // Sort by `start_timestamp` (earliest to latest)
+        std::sort(events.begin(), events.end(), [](const Event &a, const Event &b) {
+            return a.start_timestamp < b.start_timestamp;
+        });
+
+        // Define a function to format time
+        auto format_time = [](std::string time_str) -> std::string {
+            struct tm timeinfo;
+            if (strptime(time_str.c_str(), "%Y-%m-%d %H:%M:%S", &timeinfo) == nullptr) {
+                return "Invalid";
+            }
+            char buffer[10];
+            strftime(buffer, sizeof(buffer), "%I:%M%p", &timeinfo); // Convert to 12-hour format
+            return std::string(buffer);
+        };
+        // Parse date
+        auto format_date = [](const std::string &time_str) -> std::string {
+            struct tm timeinfo = {};
+            if (strptime(time_str.c_str(), "%Y-%m-%d %H:%M:%S", &timeinfo) == nullptr) {
+                return "Invalid";
+            }
+            char buffer[6];  // Need to store "MM-DD\0"
+            strftime(buffer, sizeof(buffer), "%m-%d", &timeinfo);
+            return std::string(buffer);
+        };
+
+        // Draw events
+        int even_x_start_offset = 460;
+        int even_y_start_offset = 80;
+        for (const auto &event : events) {
+          if(even_y_start_offset >= 420){
+            break;
+          }
+
+          // Format time
+          std::string formatted_date = format_date(event.start_time);
+          std::string formatted_start_time = format_time(event.start_time);
+          std::string formatted_end_time = format_time(event.end_time);
+
+          // Combine time range string
+          std::string time_range = formatted_start_time + " - " + formatted_end_time;
+          time_range = formatted_date + "  " + time_range;
+          if(formatted_start_time == "Invalid" || formatted_end_time == "Invalid"){
+            time_range.clear();
+          }
+          // Display time range, e.g., "10:00AM - 11:00AM"
+          it.printf(even_x_start_offset, even_y_start_offset, id(sensor_font), "%s", time_range.c_str());
+          even_y_start_offset += 30;
+          // Display event name
+          it.printf(even_x_start_offset, even_y_start_offset, id(sensor_font), "%s", event.message.c_str());
+          even_y_start_offset += 40;
+        }
+      }
+
+
