@@ -156,10 +156,10 @@ font:
     size: 20
   - file: "fonts/Montserrat-Black.ttf"
     id: data_font
-    size: 30
+    size: 28
   - file: "fonts/Montserrat-Black.ttf"
     id: sensor_font
-    size: 22
+    size: 20
 
   - file: "gfonts://Inter@700" #
     id: font1
@@ -202,207 +202,209 @@ display:
     model: 7.50inv2
     update_interval: 50s
     lambda: |-
-      if(id(wifi_status) == 0){
+      // ==== Wi-Fi Status Section ====
+      if (id(wifi_status) == 0)
+      {
         it.image(180, 0, id(esphome_logo));
         it.print(230, 300, id(data_font), "WI-FI CONNECTING");
-      }else{
-        // Draw weather images here
+      }
+      else
+      {
+        // ==== Weather Icon Section ====
         std::string weather_string = id(myWeather).state.c_str();
-        if(weather_string == "rainy" || weather_string == "lightning" || weather_string == "pouring"){
+
+        if (weather_string == "rainy" || weather_string == "lightning" || weather_string == "pouring")
+        {
           // Draw rainy weather image
           it.printf(120, 85, id(font_weather), TextAlign::CENTER, "\U000F0596");
-        }else if(weather_string == "snowy"){
+        }
+        else if (weather_string == "snowy")
+        {
           // Draw snowy weather image
           it.printf(120, 85, id(font_weather), TextAlign::CENTER, "\U000F0598");
-        }else if(weather_string == "sunny" || weather_string == "windy"){
+        }
+        else if (weather_string == "sunny" || weather_string == "windy")
+        {
           // Draw sunny weather image
           it.printf(120, 85, id(font_weather), TextAlign::CENTER, "\U000F0599");
-        }else{
+        }
+        else
+        {
           // Draw cloudy weather image
           it.printf(120, 85, id(font_weather), TextAlign::CENTER, "\U000F0590");
         }
 
+        // ==== Date and Time Section ====
         auto time_now = id(homeassistant_time).now();
-        // Month conversion
-        const char* months[] = {
+        const char* months[] =
+        {
           "January", "February", "March", "April", "May", "June",
           "July", "August", "September", "October", "November", "December"
         };
-        const char* month_str = months[time_now.month - 1];  // Month index starts from 0
-        // Get the day
+        const char* month_str = months[time_now.month - 1];
         int day = time_now.day_of_month;
-        // Draw the date
         it.printf(250, 110, id(data_font), "%d %s", day, month_str);
-        // Get the day of the week
         const char* days[] = {"Saturday", "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday"};
         const char* day_of_week = days[time_now.day_of_week];
         it.printf(250, 70, id(data_font), "%s", day_of_week);
 
+        // ==== Temperature Section ====
         int x = 20, y = 180, w = 180, h = 120, r = 10, thickness = 4;
-        // Draw four borders
         it.filled_rectangle(x + r, y, w - 2 * r, thickness); // Top border
         it.filled_rectangle(x + r, y + h - thickness, w - 2 * r, thickness); // Bottom border
         it.filled_rectangle(x, y + r, thickness, h - 2 * r); // Left border
         it.filled_rectangle(x + w - thickness, y + r, thickness, h - 2 * r); // Right border
-        // Draw four rounded corners
         it.filled_circle(x + r, y + r, r); // Top-left corner
         it.filled_circle(x + w - r, y + r, r); // Top-right corner
         it.filled_circle(x + r, y + h - r, r); // Bottom-left corner
         it.filled_circle(x + w - r, y + h - r, r); // Bottom-right corner
-        // Fill the inside with black to form a border
         it.filled_rectangle(x + thickness, y + thickness, w - 2 * thickness, h - 2 * thickness, COLOR_OFF);
-        // Temperature
-        it.printf(x+10, y+10, id(sensor_font), "Temperature");
-        it.printf(x+45, y+75, id(img_font_sensor), TextAlign::CENTER, "\U000F050F");
-        // Get temperature data
-        it.printf(x+75,y+65, id(data_font), "%s°C", id(temp).state.c_str());
+        it.printf(x + 10, y + 10, id(sensor_font), "Temperature");
+        it.printf(x + 45, y + 75, id(img_font_sensor), TextAlign::CENTER, "\U000F050F");
+        it.printf(x + 75, y + 65, id(data_font), "%s°C", id(temp).state.c_str());
 
+        // ==== Humidity Section ====
         x = 220;
         y = 180;
-        // Draw four borders
-        it.filled_rectangle(x + r, y, w - 2 * r, thickness); // Top border
-        it.filled_rectangle(x + r, y + h - thickness, w - 2 * r, thickness); // Bottom border
-        it.filled_rectangle(x, y + r, thickness, h - 2 * r); // Left border
-        it.filled_rectangle(x + w - thickness, y + r, thickness, h - 2 * r); // Right border
-        // Draw four rounded corners
-        it.filled_circle(x + r, y + r, r); // Top-left corner
-        it.filled_circle(x + w - r, y + r, r); // Top-right corner
-        it.filled_circle(x + r, y + h - r, r); // Bottom-left corner
-        it.filled_circle(x + w - r, y + h - r, r); // Bottom-right corner
-        // Fill the inside with black to form a border
+        it.filled_rectangle(x + r, y, w - 2 * r, thickness);
+        it.filled_rectangle(x + r, y + h - thickness, w - 2 * r, thickness);
+        it.filled_rectangle(x, y + r, thickness, h - 2 * r);
+        it.filled_rectangle(x + w - thickness, y + r, thickness, h - 2 * r);
+        it.filled_circle(x + r, y + r, r);
+        it.filled_circle(x + w - r, y + r, r);
+        it.filled_circle(x + r, y + h - r, r);
+        it.filled_circle(x + w - r, y + h - r, r);
         it.filled_rectangle(x + thickness, y + thickness, w - 2 * thickness, h - 2 * thickness, COLOR_OFF);
-        // Humidity
-        it.printf(x+10, y+10, id(sensor_font), "Humidity");
-        it.printf(x+45, y+75, id(img_font_sensor), TextAlign::CENTER, "\U000F058E");
-        // Get humidity data
-        it.printf(x+75,y+65, id(data_font), "%s%%", id(humi).state.c_str());
+        it.printf(x + 10, y + 10, id(sensor_font), "Humidity");
+        it.printf(x + 45, y + 75, id(img_font_sensor), TextAlign::CENTER, "\U000F058E");
+        it.printf(x + 75, y + 65, id(data_font), "%s%%", id(humi).state.c_str());
 
+        // ==== Air Pressure Section ====
         x = 20;
         y = 320;
-        // Draw four borders
-        it.filled_rectangle(x + r, y, w - 2 * r, thickness); // Top border
-        it.filled_rectangle(x + r, y + h - thickness, w - 2 * r, thickness); // Bottom border
-        it.filled_rectangle(x, y + r, thickness, h - 2 * r); // Left border
-        it.filled_rectangle(x + w - thickness, y + r, thickness, h - 2 * r); // Right border
-        // Draw four rounded corners
-        it.filled_circle(x + r, y + r, r); // Top-left corner
-        it.filled_circle(x + w - r, y + r, r); // Top-right corner
-        it.filled_circle(x + r, y + h - r, r); // Bottom-left corner
-        it.filled_circle(x + w - r, y + h - r, r); // Bottom-right corner
-        // Fill the inside with black to form a border
+        it.filled_rectangle(x + r, y, w - 2 * r, thickness);
+        it.filled_rectangle(x + r, y + h - thickness, w - 2 * r, thickness);
+        it.filled_rectangle(x, y + r, thickness, h - 2 * r);
+        it.filled_rectangle(x + w - thickness, y + r, thickness, h - 2 * r);
+        it.filled_circle(x + r, y + r, r);
+        it.filled_circle(x + w - r, y + r, r);
+        it.filled_circle(x + r, y + h - r, r);
+        it.filled_circle(x + w - r, y + h - r, r);
         it.filled_rectangle(x + thickness, y + thickness, w - 2 * thickness, h - 2 * thickness, COLOR_OFF);
-        // Air Pressure
-        it.printf(x+10, y+10, id(sensor_font), "Air Pressure");
-        it.printf(x+45, y+75, id(img_font_sensor), TextAlign::CENTER, "\U000F0D60");
-        // Get atmospheric pressure data
-        it.printf(x+85,y+50, id(data_font), "%s", id(press).state.c_str());
-        it.printf(x+85,y+78, id(sensor_font), "mbar");
+        it.printf(x + 10, y + 10, id(sensor_font), "Air Pressure");
+        it.printf(x + 45, y + 75, id(img_font_sensor), TextAlign::CENTER, "\U000F0D60");
+        it.printf(x + 85, y + 50, id(data_font), "%s", id(press).state.c_str());
+        it.printf(x + 85, y + 78, id(sensor_font), "mbar");
 
+        // ==== Wind Speed Section ====
         x = 220;
         y = 320;
-        // Draw four borders
-        it.filled_rectangle(x + r, y, w - 2 * r, thickness); // Top border
-        it.filled_rectangle(x + r, y + h - thickness, w - 2 * r, thickness); // Bottom border
-        it.filled_rectangle(x, y + r, thickness, h - 2 * r); // Left border
-        it.filled_rectangle(x + w - thickness, y + r, thickness, h - 2 * r); // Right border
-        // Draw four rounded corners
-        it.filled_circle(x + r, y + r, r); // Top-left corner
-        it.filled_circle(x + w - r, y + r, r); // Top-right corner
-        it.filled_circle(x + r, y + h - r, r); // Bottom-left corner
-        it.filled_circle(x + w - r, y + h - r, r); // Bottom-right corner
-        // Fill the inside with black to form a border
+        it.filled_rectangle(x + r, y, w - 2 * r, thickness);
+        it.filled_rectangle(x + r, y + h - thickness, w - 2 * r, thickness);
+        it.filled_rectangle(x, y + r, thickness, h - 2 * r);
+        it.filled_rectangle(x + w - thickness, y + r, thickness, h - 2 * r);
+        it.filled_circle(x + r, y + r, r);
+        it.filled_circle(x + w - r, y + r, r);
+        it.filled_circle(x + r, y + h - r, r);
+        it.filled_circle(x + w - r, y + h - r, r);
         it.filled_rectangle(x + thickness, y + thickness, w - 2 * thickness, h - 2 * thickness, COLOR_OFF);
-        // Wind Speed
-        it.printf(x+10, y+10, id(sensor_font), "Wind Speed");
-        it.printf(x+45, y+75, id(img_font_sensor), TextAlign::CENTER, "\U000F059D");
-        // Get wind speed data
-        it.printf(x+85,y+50, id(data_font), "%s", id(wind).state.c_str());
-        it.printf(x+85,y+78, id(sensor_font), "mph");
+        it.printf(x + 10, y + 10, id(sensor_font), "Wind Speed");
+        it.printf(x + 45, y + 75, id(img_font_sensor), TextAlign::CENTER, "\U000F059D");
+        it.printf(x + 85, y + 50, id(data_font), "%s", id(wind).state.c_str());
+        it.printf(x + 85, y + 78, id(sensor_font), "mph");
 
-        // Draw a vertical line
-        it.filled_rectangle(430, 30, 5, 430);
-        // Right section
+        // ==== Calendar Section ====
+        it.filled_rectangle(430, 30, 5, 430); // Vertical line
         it.printf(540, 40, id(data_font), "Calendar");
 
-        // Define event structure
-        struct Event {
-            std::string message;
-            std::string start_time;
-            std::string end_time;
-            time_t start_timestamp;
+        // ---- Event Data Structures ----
+        struct Event
+        {
+          std::string message;
+          std::string start_time;
+          std::string end_time;
+          time_t start_timestamp;
         };
 
-        // Parse time string to time_t (UNIX timestamp)
-        auto parse_time = [](const std::string &time_str) -> time_t {
-            struct tm timeinfo = {};
-            if (strptime(time_str.c_str(), "%Y-%m-%d %H:%M:%S", &timeinfo) == nullptr) {
-                return 0;  // Invalid time
-            }
-            return mktime(&timeinfo);
+        auto parse_time = [](const std::string &time_str) -> time_t
+        {
+          struct tm timeinfo = {};
+          if (strptime(time_str.c_str(), "%Y-%m-%d %H:%M:%S", &timeinfo) == nullptr)
+          {
+            return 0;  // Invalid time
+          }
+          return mktime(&timeinfo);
         };
 
-        // Create event list
-        std::vector<Event> events = {
-            {id(ha_calendar_event_1).state, id(ha_calendar_start_time_1).state, id(ha_calendar_end_time_1).state, parse_time(id(ha_calendar_start_time_1).state)},
-            {id(ha_calendar_event_2).state, id(ha_calendar_start_time_2).state, id(ha_calendar_end_time_2).state, parse_time(id(ha_calendar_start_time_2).state)},
-            {id(ha_calendar_event_3).state, id(ha_calendar_start_time_3).state, id(ha_calendar_end_time_3).state, parse_time(id(ha_calendar_start_time_3).state)}
+        std::vector<Event> events =
+        {
+          {id(ha_calendar_event_1).state, id(ha_calendar_start_time_1).state, id(ha_calendar_end_time_1).state, parse_time(id(ha_calendar_start_time_1).state)},
+          {id(ha_calendar_event_2).state, id(ha_calendar_start_time_2).state, id(ha_calendar_end_time_2).state, parse_time(id(ha_calendar_start_time_2).state)},
+          {id(ha_calendar_event_3).state, id(ha_calendar_start_time_3).state, id(ha_calendar_end_time_3).state, parse_time(id(ha_calendar_start_time_3).state)}
         };
+
         ESP_LOGD("myCalendar", "Start Time: %s -> %ld", id(ha_calendar_start_time_1).state.c_str(), parse_time(id(ha_calendar_start_time_1).state));
         ESP_LOGD("myCalendar", "Start Time: %s -> %ld", id(ha_calendar_start_time_2).state.c_str(), parse_time(id(ha_calendar_start_time_2).state));
         ESP_LOGD("myCalendar", "Start Time: %s -> %ld", id(ha_calendar_start_time_3).state.c_str(), parse_time(id(ha_calendar_start_time_3).state));
 
-        // Filter invalid events (start_timestamp == 0)
-        events.erase(std::remove_if(events.begin(), events.end(), [](const Event &e) { return e.start_timestamp == 0; }), events.end());
+        // ---- Event Filtering and Sorting ----
+        events.erase(std::remove_if(events.begin(), events.end(), [](const Event &e)
+        {
+          return e.start_timestamp == 0;
+        }), events.end());
 
-        // Sort by `start_timestamp` (earliest to latest)
-        std::sort(events.begin(), events.end(), [](const Event &a, const Event &b) {
-            return a.start_timestamp < b.start_timestamp;
+        std::sort(events.begin(), events.end(), [](const Event &a, const Event &b)
+        {
+          return a.start_timestamp < b.start_timestamp;
         });
 
-        // Define a function to format time
-        auto format_time = [](std::string time_str) -> std::string {
-            struct tm timeinfo;
-            if (strptime(time_str.c_str(), "%Y-%m-%d %H:%M:%S", &timeinfo) == nullptr) {
-                return "Invalid";
-            }
-            char buffer[10];
-            strftime(buffer, sizeof(buffer), "%I:%M%p", &timeinfo); // Convert to 12-hour format
-            return std::string(buffer);
-        };
-        // Parse date
-        auto format_date = [](const std::string &time_str) -> std::string {
-            struct tm timeinfo = {};
-            if (strptime(time_str.c_str(), "%Y-%m-%d %H:%M:%S", &timeinfo) == nullptr) {
-                return "Invalid";
-            }
-            char buffer[6];  // Need to store "MM-DD\0"
-            strftime(buffer, sizeof(buffer), "%m-%d", &timeinfo);
-            return std::string(buffer);
+        // ---- Event Time Formatting ----
+        auto format_time = [](std::string time_str) -> std::string
+        {
+          struct tm timeinfo;
+          if (strptime(time_str.c_str(), "%Y-%m-%d %H:%M:%S", &timeinfo) == nullptr)
+          {
+            return "Invalid";
+          }
+          char buffer[10];
+          strftime(buffer, sizeof(buffer), "%I:%M%p", &timeinfo);
+          return std::string(buffer);
         };
 
-        // Draw events
+        auto format_date = [](const std::string &time_str) -> std::string
+        {
+          struct tm timeinfo = {};
+          if (strptime(time_str.c_str(), "%Y-%m-%d %H:%M:%S", &timeinfo) == nullptr)
+          {
+            return "Invalid";
+          }
+          char buffer[6];
+          strftime(buffer, sizeof(buffer), "%m-%d", &timeinfo);
+          return std::string(buffer);
+        };
+
+        // ---- Draw Events ----
         int even_x_start_offset = 460;
         int even_y_start_offset = 80;
-        for (const auto &event : events) {
-          if(even_y_start_offset >= 420){
+        for (const auto &event : events)
+        {
+          if (even_y_start_offset >= 420)
+          {
             break;
           }
 
-          // Format time
           std::string formatted_date = format_date(event.start_time);
           std::string formatted_start_time = format_time(event.start_time);
           std::string formatted_end_time = format_time(event.end_time);
 
-          // Combine time range string
           std::string time_range = formatted_start_time + " - " + formatted_end_time;
           time_range = formatted_date + "  " + time_range;
-          if(formatted_start_time == "Invalid" || formatted_end_time == "Invalid"){
+          if (formatted_start_time == "Invalid" || formatted_end_time == "Invalid")
+          {
             time_range.clear();
           }
-          // Display time range, e.g., "10:00AM - 11:00AM"
           it.printf(even_x_start_offset, even_y_start_offset, id(sensor_font), "%s", time_range.c_str());
           even_y_start_offset += 30;
-          // Display event name
           it.printf(even_x_start_offset, even_y_start_offset, id(sensor_font), "%s", event.message.c_str());
           even_y_start_offset += 40;
         }
