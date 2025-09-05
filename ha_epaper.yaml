@@ -251,7 +251,7 @@ display:
         strftime(day_buf, sizeof(day_buf), "%A", &timeinfo);
 
         it.printf(225, 110, id(data_font), "%s", date_buf);
-        it.printf(225, 70, id(data_font), "%s", day_buf);
+        it.printf(235, 70, id(data_font), "%s", day_buf);
 
         // ==== Temperature Section ====
         int x = 20, y = 180, w = 180, h = 120, r = 10, thickness = 4;
