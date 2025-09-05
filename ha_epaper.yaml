@@ -243,15 +243,15 @@ display:
         timeinfo.tm_hour = time_now.hour;
         timeinfo.tm_min = time_now.minute;
         timeinfo.tm_sec = time_now.second;
-        timeinfo.tm_wday = time_now.day_of_week;
+        timeinfo.tm_wday = time_now.day_of_week - 1;
 
         char date_buf[24];
         char day_buf[16];
         strftime(date_buf, sizeof(date_buf), "%e %B", &timeinfo);
         strftime(day_buf, sizeof(day_buf), "%A", &timeinfo);
 
-        it.printf(250, 110, id(data_font), "%s", date_buf);
-        it.printf(250, 70, id(data_font), "%s", day_buf);
+        it.printf(225, 110, id(data_font), "%s", date_buf);
+        it.printf(225, 70, id(data_font), "%s", day_buf);
 
         // ==== Temperature Section ====
         int x = 20, y = 180, w = 180, h = 120, r = 10, thickness = 4;
