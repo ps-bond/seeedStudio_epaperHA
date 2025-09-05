@@ -15,5 +15,6 @@ Ensure that units are selected automatically (their version was fixed on F & mmH
 Ensure that date format is selected automatically 
 
 Change font size for date display so that "Wednesday" does not overlap centre dividing line
+(Same for "September", need to test other months too)
 
 Add a battery monitor
