@@ -7,14 +7,21 @@ Code is derived from Demo #3, which displays weather info and the day's calendar
 Would have forked it, but couldn't see it on Seeedstudio's repos.
 
 
+## Done:
 
-To do:
+Fixed issue with array out-of-bounds access displaying wrong data for day (used strftime instead).
 
-Ensure that units are selected automatically (their version was fixed on F & mmHg; this now uses C & mbar)
+Reduced font sizes for sensor data & date data; moved date to avoid overlap with dividing line.
+
+
+## To do:
+
+Ensure that units are selected automatically (their version was fixed on F & mmHg; this currently uses C & mbar)
 
 Ensure that date format is selected automatically 
 
-Change font size for date display so that "Wednesday" does not overlap centre dividing line
-(Same for "September", need to test other months too)
-
 Add a battery monitor
+
+Extend to add bin display using https://github.com/mampfes/hacs_waste_collection_schedule 
+
+Modify to use Google calendar (define in secrets.yaml?)
