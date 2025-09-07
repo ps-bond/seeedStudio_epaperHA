@@ -92,13 +92,19 @@ time:
 
 text_sensor:
   - platform: homeassistant
+    id: bin_collection
+    entity_id: sensor.bin_collection_sensor
+
+  - platform: homeassistant
     id: ha_calendar_event_1
     entity_id: calendar.calendar
     attribute: "message"
+
   - platform: homeassistant
     id: ha_calendar_start_time_1
     entity_id: calendar.calendar
     attribute: "start_time"
+
   - platform: homeassistant
     id: ha_calendar_end_time_1
     entity_id: calendar.calendar
@@ -156,10 +162,10 @@ font:
     size: 20
   - file: "fonts/Montserrat-Black.ttf"
     id: data_font
-    size: 28
+    size: 26
   - file: "fonts/Montserrat-Black.ttf"
     id: sensor_font
-    size: 20
+    size: 22
 
   - file: "gfonts://Inter@700" #
     id: font1
@@ -362,6 +368,10 @@ display:
         {
           return a.start_timestamp < b.start_timestamp;
         });
+
+        // ---- Bin collection ----
+        // Could add this into the events loop so the formatting is easier
+        it.printf(440, 80, id(sensor_font), "%s", id(bin_collection).state.c_str());
 
         // ---- Event Time Formatting ----
         auto format_time = [](std::string time_str) -> std::string
