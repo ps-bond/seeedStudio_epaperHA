@@ -2,6 +2,8 @@
 esphome:
   name: dashboard
   friendly_name: dashboard
+  includes:
+    - std_includes.h
 
 esp32:
   board: esp32-c3-devkitm-1
@@ -144,17 +146,32 @@ text_sensor:
     id: temp
     attribute: "temperature"
   - platform: homeassistant
+    id: temp_unit
+
+    entity_id: weather.forecast_home
+    attribute: "temperature_unit"
+  - platform: homeassistant
     entity_id: weather.forecast_home
     id: humi
+
     attribute: "humidity"
   - platform: homeassistant
     entity_id: weather.forecast_home
     id: press
     attribute: "pressure"
   - platform: homeassistant
+    id: press_unit
+    
+    entity_id: weather.forecast_home
+    attribute: "pressure_unit"
+  - platform: homeassistant
     entity_id: weather.forecast_home
     id: wind
     attribute: "wind_speed"
+  - platform: homeassistant
+    id: wind_unit
+    entity_id: weather.forecast_home
+    attribute: "wind_speed_unit"
 
 font:
   - file: "fonts/Montserrat-Black.ttf"
@@ -272,7 +289,7 @@ display:
         it.filled_rectangle(x + thickness, y + thickness, w - 2 * thickness, h - 2 * thickness, COLOR_OFF);
         it.printf(x + 10, y + 10, id(sensor_font), "Temperature");
         it.printf(x + 45, y + 75, id(img_font_sensor), TextAlign::CENTER, "\U000F050F");
-        it.printf(x + 75, y + 65, id(data_font), "%s°C", id(temp).state.c_str());
+        it.printf(x + 75, y + 65, id(data_font), "%s%s", id(temp).state.c_str(), id(temp_unit).state.c_str());
 
         // ==== Humidity Section ====
         x = 220;
@@ -305,7 +322,7 @@ display:
         it.printf(x + 10, y + 10, id(sensor_font), "Air Pressure");
         it.printf(x + 45, y + 75, id(img_font_sensor), TextAlign::CENTER, "\U000F0D60");
         it.printf(x + 85, y + 50, id(data_font), "%s", id(press).state.c_str());
-        it.printf(x + 85, y + 78, id(sensor_font), "mbar");
+        it.printf(x + 85, y + 78, id(sensor_font), "%s", id(press_unit).state.c_str());
 
         // ==== Wind Speed Section ====
         x = 220;
@@ -322,7 +339,7 @@ display:
         it.printf(x + 10, y + 10, id(sensor_font), "Wind Speed");
         it.printf(x + 45, y + 75, id(img_font_sensor), TextAlign::CENTER, "\U000F059D");
         it.printf(x + 85, y + 50, id(data_font), "%s", id(wind).state.c_str());
-        it.printf(x + 85, y + 78, id(sensor_font), "mph");
+        it.printf(x + 85, y + 78, id(sensor_font), "%s", id(wind_unit).state.c_str());
 
         // ==== Calendar Section ====
         it.filled_rectangle(430, 30, 5, 430); // Vertical line
@@ -372,6 +389,24 @@ display:
         // ---- Bin collection ----
         // Could add this into the events loop so the formatting is easier
         it.printf(440, 80, id(sensor_font), "%s", id(bin_collection).state.c_str());
+
+        // Format of bin sensor appears to be
+        // "grey bin in 1 days"
+        std::string bin_name;
+        int days = -1;
+
+        std::regex pattern(R"((.+) in (\d+) days?)");
+        std::smatch match;
+        if (std::regex_match(id(bin_collection).state, match, pattern))
+        {
+            bin_name = match[1];
+            days = std::stoi(match[2]);
+        }
+
+        if (days < 2)
+        {
+            it.printf(440, 100, id(sensor_font), "%s %s", bin_name.c_str(), (days == 1)? "tomorrow" : "today");
+        }
 
         // ---- Event Time Formatting ----
         auto format_time = [](std::string time_str) -> std::string
