@@ -141,6 +141,7 @@ text_sensor:
   - platform: homeassistant
     entity_id: weather.forecast_home
     id: myWeather
+
   - platform: homeassistant
     entity_id: weather.forecast_home
     id: temp
@@ -157,15 +158,16 @@ text_sensor:
     attribute: "humidity"
   - platform: homeassistant
     entity_id: weather.forecast_home
+
     id: press
     attribute: "pressure"
   - platform: homeassistant
     id: press_unit
-    
     entity_id: weather.forecast_home
     attribute: "pressure_unit"
   - platform: homeassistant
     entity_id: weather.forecast_home
+
     id: wind
     attribute: "wind_speed"
   - platform: homeassistant
@@ -234,28 +236,26 @@ display:
       else
       {
         // ==== Weather Icon Section ====
-        std::string weather_string = id(myWeather).state.c_str();
+        std::string weather_string = id(myWeather).state;
 
-        if (weather_string == "rainy" || weather_string == "lightning" || weather_string == "pouring")
+        std::map<std::string, const char*> weather_icons {
+          {"rainy", "\U000F0596"},
+          {"lightning", "\U000F0596"},
+          {"pouring", "\U000F0596"},
+          {"snowy", "\U000F0598"},
+          {"sunny", "\U000F0599"},
+          {"windy", "\U000F0599"}
+        };
+
+        const char* icon = "\U000F0590"; // Default: cloudy
+
+        auto it_icon = weather_icons.find(weather_string);
+        if (it_icon != weather_icons.end()) 
         {
-          // Draw rainy weather image
-          it.printf(120, 85, id(font_weather), TextAlign::CENTER, "\U000F0596");
+          icon = it_icon->second;
         }
-        else if (weather_string == "snowy")
-        {
-          // Draw snowy weather image
-          it.printf(120, 85, id(font_weather), TextAlign::CENTER, "\U000F0598");
-        }
-        else if (weather_string == "sunny" || weather_string == "windy")
-        {
-          // Draw sunny weather image
-          it.printf(120, 85, id(font_weather), TextAlign::CENTER, "\U000F0599");
-        }
-        else
-        {
-          // Draw cloudy weather image
-          it.printf(120, 85, id(font_weather), TextAlign::CENTER, "\U000F0590");
-        }
+
+        it.printf(120, 85, id(font_weather), TextAlign::CENTER, "%s", icon);
 
         // ==== Date Section ====
         auto time_now = id(homeassistant_time).now();
@@ -399,13 +399,13 @@ display:
         std::smatch match;
         if (std::regex_match(id(bin_collection).state, match, pattern))
         {
-            bin_name = match[1];
-            days = std::stoi(match[2]);
+          bin_name = match[1];
+          days = std::stoi(match[2]);
         }
 
         if (days < 2)
         {
-            it.printf(440, 100, id(sensor_font), "%s %s", bin_name.c_str(), (days == 1)? "tomorrow" : "today");
+          it.printf(440, 100, id(sensor_font), "%s %s", bin_name.c_str(), (days == 1)? "tomorrow" : "today");
         }
 
         // ---- Event Time Formatting ----
