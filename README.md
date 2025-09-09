@@ -16,15 +16,17 @@ Reduced font sizes for sensor data & date data; moved date to avoid overlap with
 
 Added (very) basic bin display - details upcoming bin type & days
 
+Bin display now displays the next bin if it's tomorrow or today (parsed on device)
+
+Units now supplied by Home Assistant wether.forecast_home attributes
+
 ## To do:
 
-Ensure that units are selected automatically (their version was fixed on F & mmHg; this currently uses C & mbar)
+Ensure that date format is selected automatically (localisation settings)
 
-Ensure that date format is selected automatically (localisation settings - same applies to temp/pressure/windspeed)
+Add a battery monitor (although schematic does not seem to show any option for ADC of the current battery PD)
 
-Add a battery monitor
-
-Extend bin display - determine if I need to parse the state string locally or I can get HA to provide a bin state 1 day before + on the day.  Add it to the events vector so there's no issues with displaying. 
+Add bin display (if present) to the head of the events vector so there's no issues with displaying. 
 
 Modify to use Google calendar (define in secrets.yaml?)
 
