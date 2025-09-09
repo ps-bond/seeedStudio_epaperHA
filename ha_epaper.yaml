@@ -199,9 +199,20 @@ font:
       - "\U000F059D" # Wind speed
       - "\U000F0D60" # Atmospheric pressure
       - "\U000F0590" # Cloudy weather
-      - "\U000F0596" # Rainy weather
-      - "\U000F0598" # Snowy weather
-      - "\U000F0599" # Sunny weather
+      - "\U000F0596" # Pouring
+      - "\U000F0598" # Snowy
+      - "\U000F0599" # Sunny
+      - "\U000F0591" # Fog
+      - "\U000F0592" # Hail
+      - "\U000F067E" # Lightning
+      - "\U000F067F" # Lightning-rainy
+      - "\U000F0595" # Partly-cloudy
+      - "\U000F0597" # Rainy
+      - "\U000F0670" # Snowy-rainy
+      - "\U000F0594" # Night
+      - "\U000F059E" # Windy-variant
+      - "\U000F1C78" # Hurricane-outline
+    
   - file: 'fonts/materialdesignicons-webfont.ttf'
     id: font_weather # Copy the above icon and change the size to 40
     size: 200
@@ -238,9 +249,10 @@ display:
         // ==== Weather Icon Section ====
         std::string weather_string = id(myWeather).state;
 
+        // Map between Home Assistant weather states & MDI codes
         std::map<std::string, const char*> weather_icons {
           {"clear-night", "\U000F0594"}, // weather-night
-          {"cloudy", "\U000F0590"},
+          {"cloudy", "\U000F0590"}, // weather-cloudy
           {"exceptional", "\U000F1C78"}, // weather-hurricane-outline.  May not actually indicate a hurricane.
           {"fog", "\U000F0591"}, // weather-fog
           {"hail", "\U000F0592"}, // weather-hail
