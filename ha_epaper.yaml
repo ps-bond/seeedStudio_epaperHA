@@ -387,25 +387,30 @@ display:
         });
 
         // ---- Bin collection ----
-        // Could add this into the events loop so the formatting is easier
-        it.printf(440, 80, id(sensor_font), "%s", id(bin_collection).state.c_str());
+        // Could add this tp the start of the events vector so the formatting is easier
 
-        // Format of bin sensor appears to be
-        // "grey bin in 1 days"
-        std::string bin_name;
-        int days = -1;
-
-        std::regex pattern(R"((.+) in (\d+) days?)");
-        std::smatch match;
-        if (std::regex_match(id(bin_collection).state, match, pattern))
+        // In case the bin isn't configured
+        if (!id(bin_collection).state.empty())
         {
-          bin_name = match[1];
-          days = std::stoi(match[2]);
-        }
+          it.printf(440, 80, id(sensor_font), "%s", id(bin_collection).state.c_str());
 
-        if (days < 2)
-        {
-          it.printf(440, 100, id(sensor_font), "%s %s", bin_name.c_str(), (days == 1)? "tomorrow" : "today");
+          // Format of bin sensor appears to be
+          // "grey bin in 1 days"
+          std::string bin_name;
+          int days(-1);
+
+          std::regex pattern(R"((.+) in (\d+) days?)");
+          std::smatch match;
+          if (std::regex_match(id(bin_collection).state, match, pattern))
+          {
+            bin_name = match[1];
+            days = std::stoi(match[2]);
+          }
+
+          if (days < 2 && days >= 0)
+          {
+            it.printf(440, 100, id(sensor_font), "%s %s", bin_name.c_str(), (days == 1) ? "tomorrow" : "today");
+          }
         }
 
         // ---- Event Time Formatting ----
