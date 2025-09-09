@@ -20,6 +20,8 @@ Bin display now displays the next bin if it's tomorrow or today (parsed on devic
 
 Units now supplied by Home Assistant wether.forecast_home attributes
 
+Extended weather display using the MDI to show the standard set of weather for HA.
+
 ## To do:
 
 Ensure that date format is selected automatically (localisation settings)
