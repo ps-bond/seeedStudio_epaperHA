@@ -18,15 +18,15 @@ Added (very) basic bin display - details upcoming bin type & days
 
 Bin display now displays the next bin if it's tomorrow or today (parsed on device)
 
-Units now supplied by Home Assistant wether.forecast_home attributes
+Units now supplied by Home Assistant weather.forecast_home attributes
 
-Extended weather display using the MDI to show the standard set of weather for HA.
+Extended weather display using the MDI to show the standard set of weather types for HA.  Default for unknown type is still cloudy.
+
+Added a battery indicator and code to return the glyph mapped to (uint8_t)0..100.  However, not currently certain the hw has a connection for battery level to an ADC. 
 
 ## To do:
 
 Ensure that date format is selected automatically (localisation settings)
-
-Add a battery monitor (although schematic does not seem to show any option for ADC of the current battery PD)
 
 Add bin display (if present) to the head of the events vector so there's no issues with displaying. 
 
@@ -34,4 +34,3 @@ Modify to use Google calendar (define in secrets.yaml?)
 
 Add an "upcoming events" section for a week's warning of impending all-day events.
 
-Possibly move day date to same line as day of week - double digits may overlap again.  In English, affects Sept/Nov/Dec as each has 9 letters.
