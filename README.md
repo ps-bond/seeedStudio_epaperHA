@@ -44,3 +44,4 @@ Remove the battery display - seems there is no hw to read battery state (1 pin +
 
 Redo layout - experiment with Figma to redesign.
 
+Add wind chill/"feels like" temperature alongside actual temp
