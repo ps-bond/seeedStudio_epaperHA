@@ -28,9 +28,19 @@ Added a battery indicator and code to return the glyph mapped to (uint8_t)0..100
 
 Ensure that date format is selected automatically (localisation settings)
 
-Add bin display (if present) to the head of the events vector so there's no issues with displaying. 
+Add bin display (if present) to the head of the events vector so there's no issues with displaying/moving calendar display when the binfo is visible.
 
-Modify to use Google calendar (define in secrets.yaml?)
+Modify to use Google calendar (define in secrets.yaml?) or find some way of aggregating calendars for single-sensor querying.
 
 Add an "upcoming events" section for a week's warning of impending all-day events.
+
+Add a lunar phase display - use the HA integration coupled with the MDI phase icons
+
+Add upcoming weather forecasr - next 4-5 hours
+
+Add time of last update (can see if the battery has gone that way)
+
+Remove the battery display - seems there is no hw to read battery state (1 pin + 2 resistors or 2 pins for I2C to the power controller - why on earth not?).  Would require hw mods to achieve.
+
+Redo layout - experiment with Figma to redesign.
 
