@@ -8,6 +8,16 @@ Would have forked it, but couldn't see it on Seeedstudio's repos.
 
 Using https://github.com/mampfes/hacs_waste_collection_schedule to get binformation from the source
 
+## Home assistant integrations needed
+
+Moon (HA built-in) - provides sensor.moon_phase
+
+Weather (HA built-in) - should be installed by default.  Provides weather.forecast_home
+
+Waste Collection Schedule - custom integration, needs HACS installed.  Provides sensor.bin_collection_sensor
+
+Calendar - TBD
+
 ## Done:
 
 Fixed issue with array out-of-bounds access displaying wrong data for day (used strftime instead).
