@@ -24,6 +24,8 @@ Extended weather display using the MDI to show the standard set of weather types
 
 Added a battery indicator and code to return the glyph mapped to (uint8_t)0..100.  However, not currently certain the hw has a connection for battery level to an ADC. 
 
+Added lunar phase display (WIP).  NB Needs "moon" integration (HA built-in) enabled to read sensor.moon_phase
+
 ## To do:
 
 Ensure that date format is selected automatically (localisation settings)
@@ -33,6 +35,10 @@ Add bin display (if present) to the head of the events vector so there's no issu
 Modify to use Google calendar (define in secrets.yaml?) or find some way of aggregating calendars for single-sensor querying.
 
 Add an "upcoming events" section for a week's warning of impending all-day events.
+
+Remove the battery display code because there's no battery info to display.
+
+Redesign layout (use Figma?) to cleanly incorporate all elements.
 
 Add a lunar phase display - use the HA integration coupled with the MDI phase icons
 

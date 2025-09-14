@@ -1,10 +1,10 @@
-
 esphome:
   name: dashboard
   friendly_name: dashboard
   includes:
     - std_includes.h
     - battery_icons.h
+    - lunar_phase_icons.h
 
 esp32:
   board: esp32-c3-devkitm-1
@@ -94,6 +94,11 @@ time:
     id: homeassistant_time
 
 text_sensor:
+
+  - platform: homeassistant
+    id: lunar_phase
+    entity_id: sensor.moon_phase
+
   - platform: homeassistant
     id: bin_collection
     entity_id: sensor.bin_collection_sensor
@@ -102,10 +107,12 @@ text_sensor:
     id: ha_calendar_event_1
     entity_id: calendar.calendar
     attribute: "message"
+
   - platform: homeassistant
     id: ha_calendar_start_time_1
     entity_id: calendar.calendar
     attribute: "start_time"
+
   - platform: homeassistant
     id: ha_calendar_end_time_1
     entity_id: calendar.calendar
@@ -115,10 +122,12 @@ text_sensor:
     id: ha_calendar_event_2
     entity_id: calendar.epaper_event
     attribute: "message"
+
   - platform: homeassistant
     id: ha_calendar_start_time_2
     entity_id: calendar.epaper_event
     attribute: "start_time"
+
   - platform: homeassistant
     id: ha_calendar_end_time_2
     entity_id: calendar.epaper_event
@@ -128,10 +137,12 @@ text_sensor:
     id: ha_calendar_event_3
     entity_id: calendar.new_calendar
     attribute: "message"
+
   - platform: homeassistant
     id: ha_calendar_start_time_3
     entity_id: calendar.new_calendar
     attribute: "start_time"
+
   - platform: homeassistant
     id: ha_calendar_end_time_3
     entity_id: calendar.new_calendar
@@ -145,36 +156,55 @@ text_sensor:
     entity_id: weather.forecast_home
     id: temp
     attribute: "temperature"
+
   - platform: homeassistant
     id: temp_unit
 
     entity_id: weather.forecast_home
     attribute: "temperature_unit"
+
   - platform: homeassistant
     entity_id: weather.forecast_home
     id: humi
 
     attribute: "humidity"
+
   - platform: homeassistant
     entity_id: weather.forecast_home
 
     id: press
     attribute: "pressure"
+
   - platform: homeassistant
     id: press_unit
     entity_id: weather.forecast_home
     attribute: "pressure_unit"
+    
   - platform: homeassistant
     entity_id: weather.forecast_home
-
     id: wind
     attribute: "wind_speed"
+
   - platform: homeassistant
     id: wind_unit
     entity_id: weather.forecast_home
     attribute: "wind_speed_unit"
 
+
 font:
+  - file: 'fonts/materialdesignicons-webfont.ttf'
+    id: font_mdi_lunar
+    size: 80
+    glyphs: &mdi-lunar-glyphs
+      - "\U000F0F64" # new_moon
+      - "\U000F0F67" # waxing_crescent
+      - "\U000F0F61" # first_quarter
+      - "\U000F0F68" # waxing_gibbous
+      - "\U000F0F62" # full_moon
+      - "\U000F0F66" # waning_gibbous
+      - "\U000F0F63" # last_quarter
+      - "\U000F0F65" # waning_crescent
+
   - file: "fonts/Montserrat-Black.ttf"
     id: web_font
     size: 20
@@ -306,6 +336,13 @@ display:
         // Display battery icon at bottom right (e.g., 780, 450 for 800x480 display)
         it.printf(780, 450, id(font_mdi_battery), TextAlign::CENTER, "%s", battery_icon);
 
+        // ==== Lunar phase Section
+        std::string lunar_phase_state = id(lunar_phase).state;
+        const char *moon_phase = get_lunar_phase_icon(lunar_phase_state);
+
+        // Display lunar phase icon at the top right (e.g., 780, 40 for 800x480 display)
+        it.printf(780, 40, id(font_mdi_lunar), TextAlign::TOP_RIGHT, "%s", moon_phase);
+            
         // ==== Date Section ====
         auto time_now = id(homeassistant_time).now();
         struct tm timeinfo = {};
@@ -527,5 +564,3 @@ display:
           even_y_start_offset += 40;
         }
       }
-
-
