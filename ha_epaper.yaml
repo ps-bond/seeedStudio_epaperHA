@@ -1,7 +1,6 @@
 esphome:
   name: dashboard
   friendly_name: dashboard
-  on_boot:
   includes:
     - std_includes.h
     - weather_icons.h
@@ -11,9 +10,6 @@ esp32:
   board: esp32-c3-devkitm-1
   framework:
     type: arduino
-  libraries:
-    # Required for JSON parsing
-    - "ArduinoJson@6.21.5"
 
 # Enable logging
 logger:
@@ -236,6 +232,9 @@ font:
   - file: "fonts/Montserrat-Black.ttf"
     id: sensor_font
     size: 22
+  - file: "fonts/Montserrat-Black.ttf"
+    id: small_font
+    size: 12
 
   - file: "gfonts://Inter@700" #
     id: font1
@@ -323,35 +322,24 @@ display:
         std::string lunar_phase_state = id(lunar_phase).state;
         const char *moon_phase = get_lunar_phase_icon(lunar_phase_state);
 
-        // Display lunar phase icon at the top right (e.g., 780, 40 for 800x480 display)
-        it.printf(780, 40, id(font_mdi_lunar), TextAlign::TOP_RIGHT, "%s", moon_phase);
+        // Display lunar phase icon at the top right
+        it.printf(800, 0, id(font_mdi_lunar), TextAlign::TOP_RIGHT, "%s", moon_phase);
             
         // ==== Date Section ====
         auto time_now = id(homeassistant_time).now();
-        struct tm timeinfo = {};
-        timeinfo.tm_year = time_now.year - 1900;
-        timeinfo.tm_mon = time_now.month - 1;
-        timeinfo.tm_mday = time_now.day_of_month;
-        timeinfo.tm_hour = time_now.hour;
-        timeinfo.tm_min = time_now.minute;
-        timeinfo.tm_sec = time_now.second;
-        timeinfo.tm_wday = time_now.day_of_week - 1;
+        time_t time_now_t = time_now.timestamp;
+        struct tm *timeinfo = localtime(&time_now_t);
 
         char date_buf[24];
         char day_buf[16];
-        strftime(date_buf, sizeof(date_buf), "%e %B", &timeinfo);
-        strftime(day_buf, sizeof(day_buf), "%A", &timeinfo);
+        strftime(date_buf, sizeof(date_buf), "%e %B", timeinfo);
+        strftime(day_buf, sizeof(day_buf), "%A", timeinfo);
 
         it.printf(225, 110, id(data_font), TextAlign::BOTTOM_LEFT, "%s", date_buf);
-        it.printf(235, 70, id(data_font), TextAlign::BOTTOM_LEFT, "%s", day_buf);
+        it.printf(225, 70, id(data_font), TextAlign::BOTTOM_LEFT, "%s", day_buf);
 
-        // Store last updated time - gives an obvious indicator if the battery has gone flat
-        static auto last_updated = time_now;
-        if (time_now - last_updated > 60) 
-        {
-            last_updated = time_now;
-            // Update the display or perform any other actions
-        }
+        // Display "last updated" time in bottom right - as this has woken from deep sleep, it's hh:mm of time_now
+        it.printf(800, 480, id(small_font), TextAlign::BOTTOM_RIGHT, "Last updated: %02d:%02d", timeinfo->tm_hour, timeinfo->tm_min);
 
         // ==== Temperature Section ====
         int x = 20, y = 180, w = 180, h = 120, r = 10, thickness = 4;
@@ -421,70 +409,6 @@ display:
         // ==== Calendar Section ====
         it.filled_rectangle(430, 30, 5, 430); // Vertical line
         it.printf(540, 40, id(data_font), "Calendar");
-
-        // =================================================================================
-        // ==== New Calendar Parsing Logic ====
-        // =================================================================================
-
-        // ---- Data Structures for new calendar events ----
-        struct TodayEvent {
-          std::string time; // "HH:MM"
-          std::string summary;
-        };
-
-        struct FutureEvent {
-          std::string day; // "Day" (e.g., "Mon", "Tue")
-          std::string summary;
-        };
-
-        std::vector<TodayEvent> today_events_vec;
-        std::vector<FutureEvent> future_events_vec;
-
-        // ---- Parse Today's Events ----
-        const std::string& today_json_str = id(combined_calendar_today).state;
-        if (!today_json_str.empty() && today_json_str != "[]") {
-          DynamicJsonDocument doc(2048); // Adjust size if you have many events
-          deserializeJson(doc, today_json_str);
-          JsonArray events_array = doc.as<JsonArray>();
-
-          for (JsonObject event : events_array) {
-            if (today_events_vec.size() >= id(max_today_events)) {
-              break; // Stop if we've reached the limit
-            }
-            std::string start_str = event["start"]; // e.g., "2023-10-27T14:00:00-04:00"
-            std::string summary = event["summary"];
-
-            // Extract HH:MM from the start time string
-            size_t time_pos = start_str.find('T');
-            if (time_pos != std::string::npos) {
-                std::string time = start_str.substr(time_pos + 1, 5);
-                today_events_vec.push_back({time, summary});
-            }
-          }
-        }
-
-        // ---- Parse Future Events ----
-        const std::string& future_json_str = id(combined_calendar_future).state;
-        if (!future_json_str.empty() && future_json_str != "[]") {
-          DynamicJsonDocument doc(2048); // Adjust size if needed
-          deserializeJson(doc, future_json_str);
-          JsonArray events_array = doc.as<JsonArray>();
-
-          for (JsonObject event : events_array) {
-            if (future_events_vec.size() >= id(max_future_events)) {
-              break; // Stop if we've reached the limit
-            }
-            std::string start_str = event["start"]; // e.g., "2023-10-28"
-            std::string summary = event["summary"];
-
-            struct tm tm = {};
-            if (strptime(start_str.c_str(), "%Y-%m-%d", &tm) != nullptr) {
-                char day_buf[10]; // "Wednesday" is 9 chars + null terminator
-                strftime(day_buf, sizeof(day_buf), "%A", &tm); // Get full day name (e.g., "Monday")
-                future_events_vec.push_back({std::string(day_buf), summary});
-            }
-          }
-        }
 
         // =================================================================================
         // ==== Old Calendar Parsing Logic (to be removed later) ====

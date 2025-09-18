@@ -32,9 +32,11 @@ Units now supplied by Home Assistant weather.forecast_home attributes
 
 Extended weather display using the MDI to show the standard set of weather types for HA.  Default for unknown type is still cloudy.
 
-Added a battery indicator and code to return the glyph mapped to (uint8_t)0..100.  However, not currently certain the hw has a connection for battery level to an ADC. 
+Removed battery indicator - not much point without some hw monitoring.
 
 Added lunar phase display (WIP).  NB Needs "moon" integration (HA built-in) enabled to read sensor.moon_phase
+
+Add time of last update (can see if the battery has gone that way)
 
 ## To do:
 
@@ -48,12 +50,6 @@ Add an "upcoming events" section for a week's warning of impending all-day event
 
 Redesign layout (use Figma?) to cleanly incorporate all elements.
 
-Add a lunar phase display - use the HA integration coupled with the MDI phase icons
-
 Add upcoming weather forecasr - next 4-5 hours
-
-Add time of last update (can see if the battery has gone that way)
-
-Remove the battery display - seems there is no hw to read battery state (1 pin + 2 resistors or 2 pins for I2C to the power controller - why on earth not?).  Would require hw mods to achieve.
 
 Add wind chill/"feels like" temperature alongside actual temp
