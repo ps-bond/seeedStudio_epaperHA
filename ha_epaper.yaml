@@ -1,6 +1,7 @@
 esphome:
   name: dashboard
   friendly_name: dashboard
+  on_boot:
   includes:
     - std_includes.h
     - weather_icons.h
@@ -10,6 +11,9 @@ esp32:
   board: esp32-c3-devkitm-1
   framework:
     type: arduino
+  libraries:
+    # Required for JSON parsing
+    - "ArduinoJson@6.21.5"
 
 # Enable logging
 logger:
@@ -34,6 +38,12 @@ globals:
     type: bool
     restore_value: no
     initial_value: "false"
+  - id: max_today_events
+    type: int
+    initial_value: "5"
+  - id: max_future_events
+    type: int
+    initial_value: "5"
 
 wifi:
   ssid: !secret wifi_ssid
@@ -148,6 +158,18 @@ text_sensor:
     entity_id: calendar.new_calendar
     attribute: "end_time"
 
+  # New combined calendar sensors
+  - platform: homeassistant
+    id: combined_calendar_today
+    entity_id: sensor.combined_calendar_events
+    attribute: "today_events"
+    internal: true
+
+  - platform: homeassistant
+    id: combined_calendar_future
+    entity_id: sensor.combined_calendar_events
+    attribute: "future_events"
+    internal: true
   - platform: homeassistant
     entity_id: weather.forecast_home
     id: myWeather
@@ -320,8 +342,8 @@ display:
         strftime(date_buf, sizeof(date_buf), "%e %B", &timeinfo);
         strftime(day_buf, sizeof(day_buf), "%A", &timeinfo);
 
-        it.printf(225, 110, id(data_font), "%s", date_buf);
-        it.printf(235, 70, id(data_font), "%s", day_buf);
+        it.printf(225, 110, id(data_font), TextAlign::BOTTOM_LEFT, "%s", date_buf);
+        it.printf(235, 70, id(data_font), TextAlign::BOTTOM_LEFT, "%s", day_buf);
 
         // Store last updated time - gives an obvious indicator if the battery has gone flat
         static auto last_updated = time_now;
@@ -400,6 +422,73 @@ display:
         it.filled_rectangle(430, 30, 5, 430); // Vertical line
         it.printf(540, 40, id(data_font), "Calendar");
 
+        // =================================================================================
+        // ==== New Calendar Parsing Logic ====
+        // =================================================================================
+
+        // ---- Data Structures for new calendar events ----
+        struct TodayEvent {
+          std::string time; // "HH:MM"
+          std::string summary;
+        };
+
+        struct FutureEvent {
+          std::string day; // "Day" (e.g., "Mon", "Tue")
+          std::string summary;
+        };
+
+        std::vector<TodayEvent> today_events_vec;
+        std::vector<FutureEvent> future_events_vec;
+
+        // ---- Parse Today's Events ----
+        const std::string& today_json_str = id(combined_calendar_today).state;
+        if (!today_json_str.empty() && today_json_str != "[]") {
+          DynamicJsonDocument doc(2048); // Adjust size if you have many events
+          deserializeJson(doc, today_json_str);
+          JsonArray events_array = doc.as<JsonArray>();
+
+          for (JsonObject event : events_array) {
+            if (today_events_vec.size() >= id(max_today_events)) {
+              break; // Stop if we've reached the limit
+            }
+            std::string start_str = event["start"]; // e.g., "2023-10-27T14:00:00-04:00"
+            std::string summary = event["summary"];
+
+            // Extract HH:MM from the start time string
+            size_t time_pos = start_str.find('T');
+            if (time_pos != std::string::npos) {
+                std::string time = start_str.substr(time_pos + 1, 5);
+                today_events_vec.push_back({time, summary});
+            }
+          }
+        }
+
+        // ---- Parse Future Events ----
+        const std::string& future_json_str = id(combined_calendar_future).state;
+        if (!future_json_str.empty() && future_json_str != "[]") {
+          DynamicJsonDocument doc(2048); // Adjust size if needed
+          deserializeJson(doc, future_json_str);
+          JsonArray events_array = doc.as<JsonArray>();
+
+          for (JsonObject event : events_array) {
+            if (future_events_vec.size() >= id(max_future_events)) {
+              break; // Stop if we've reached the limit
+            }
+            std::string start_str = event["start"]; // e.g., "2023-10-28"
+            std::string summary = event["summary"];
+
+            struct tm tm = {};
+            if (strptime(start_str.c_str(), "%Y-%m-%d", &tm) != nullptr) {
+                char day_buf[10]; // "Wednesday" is 9 chars + null terminator
+                strftime(day_buf, sizeof(day_buf), "%A", &tm); // Get full day name (e.g., "Monday")
+                future_events_vec.push_back({std::string(day_buf), summary});
+            }
+          }
+        }
+
+        // =================================================================================
+        // ==== Old Calendar Parsing Logic (to be removed later) ====
+        // =================================================================================
         // ---- Event Data Structures ----
         struct Event
         {

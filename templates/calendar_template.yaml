@@ -1,0 +1,46 @@
+# Template to read all specified calendars for events and combine them
+# combine_events sensor will have 2 attributes - 1 for all future events, 1 for today's events
+template:
+  - trigger:
+      - platform: homeassistant
+        event: start
+      - platform: time_pattern
+        hours: /1 # Update every hour to catch new events
+      - platform: event
+        event_type: "homeassistant_event" # Catch any relevant calendar event changes
+    action:
+      - service: calendar.get_events
+        data:
+          start_date_time: "{{ now() }}"
+          end_date_time: "{{ now() + timedelta(days=7) }}"
+        target:
+          entity_id:
+            # Specific calendars to read
+            - calendar.personal_calendar
+            - calendar.work_calendar
+            - calendar.family_calendar
+        response_variable: combined_events
+    sensor:
+      - name: "Combined Calendar Events"
+        unique_id: "combined_calendar_events"
+        state: "{{ now().isoformat() }}" # State can be the current time to force an update
+        attributes:
+          today_events: >
+            {# Filter for timed events that start today #}
+            {% set all_events = namespace(events=[]) %}
+            {% for calendar_id, events in combined_events.items() %}
+              {% set all_events.events = all_events.events + events.events %}
+            {% endfor %}
+            {# Filter for non-all-day events that start today #}
+            {% set today_timed_events = all_events.events | selectattr('all_day', 'ne', true) | select('is_today', 'start') | list %}
+            {% set sorted_timed_events = today_timed_events | sort(attribute='start') %}
+            {{ sorted_timed_events | to_json }}
+          future_events: >
+            {% set all_events = namespace(events=[]) %}
+            {% for calendar_id, events in combined_events.items() %}
+              {% set all_events.events = all_events.events + events.events %}
+            {% endfor %}
+            {# Filter for future events that are not today #}
+            {% set future_events = all_events.events | selectattr('all_day', 'eq', true) | reject('is_today', 'start') | list %}
+            {% set sorted_future_events = future_events | sort(attribute='start') %}
+            {{ sorted_future_events | to_json }}
