@@ -38,5 +38,5 @@ inline const char* get_lunar_phase_icon(const std::string& phase) {
         return it->second;
     }
     // Default to new moon if unknown
-    return "\U000F0F64";
+    return (lunar_phase_icon_map.at("new_moon");
 }

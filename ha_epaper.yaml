@@ -3,7 +3,7 @@ esphome:
   friendly_name: dashboard
   includes:
     - std_includes.h
-    - battery_icons.h
+    - weather_icons.h
     - lunar_phase_icons.h
 
 esp32:
@@ -293,48 +293,9 @@ display:
       {
         // ==== Weather Icon Section ====
         std::string weather_string = id(myWeather).state;
-
-        // Map between Home Assistant weather states & MDI codes
-        std::map<std::string, const char*> weather_icons {
-          {"clear-night", "\U000F0594"}, // weather-night
-          {"cloudy", "\U000F0590"}, // weather-cloudy
-          {"fog", "\U000F0591"}, // weather-fog
-          {"hail", "\U000F0592"}, // weather-hail
-          {"lightning", "\U000F067E"}, // weather-lightning
-          {"lightning-rainy", "\U000F067F"}, // weather-lightning-rainy
-          {"partlycloudy", "\U000F0595"}, // weather-partly-cloudy
-          {"pouring", "\U000F0596"}, // weather-pouring
-          {"rainy", "\U000F0597"}, // weather-rainy
-          {"snowy", "\U000F0598"}, // weather-snowy
-          {"snowy-rainy", "\U000F0670"}, // weather-snowy-rainy
-          {"sunny", "\U000F0599"}, // weather-sunny
-          {"windy", "\U000F059D"}, // weather-windy
-          {"windy-variant", "\U000F059E"}, // weather-windy-variant
-          {"exceptional", "\U000F1C78"} // weather-hurricane-outline.  May not actually indicate a hurricane.
-        };
-
-        // Use the map entry for default icon
-        const char* icon = weather_icons["cloudy"];
-
-        auto it_icon = weather_icons.find(weather_string);
-        if (it_icon != weather_icons.end())
-        {
-          icon = it_icon->second;
-        }
+        const char* icon = get_weather_icon(weather_string);  
 
         it.printf(120, 85, id(font_weather), TextAlign::CENTER, "%s", icon);
-
-        // ==== Battery Section ====
-        // Get battery level if available via ADC
-        uint8_t battery_level = 0;
-        // if (id(battery_sensor).has_state()) {
-        //   battery_level = static_cast<uint8_t>(id(battery_sensor).state);
-        // }
-        battery_level = 74; // Testing
-
-        const char* battery_icon = get_battery_icon(battery_level);
-        // Display battery icon at bottom right (e.g., 780, 450 for 800x480 display)
-        it.printf(780, 450, id(font_mdi_battery), TextAlign::CENTER, "%s", battery_icon);
 
         // ==== Lunar phase Section
         std::string lunar_phase_state = id(lunar_phase).state;
@@ -361,6 +322,14 @@ display:
 
         it.printf(225, 110, id(data_font), "%s", date_buf);
         it.printf(235, 70, id(data_font), "%s", day_buf);
+
+        // Store last updated time - gives an obvious indicator if the battery has gone flat
+        static auto last_updated = time_now;
+        if (time_now - last_updated > 60) 
+        {
+            last_updated = time_now;
+            // Update the display or perform any other actions
+        }
 
         // ==== Temperature Section ====
         int x = 20, y = 180, w = 180, h = 120, r = 10, thickness = 4;
