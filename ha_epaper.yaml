@@ -328,6 +328,20 @@ display:
       const int CALENDAR_CONTENT_Y_START = 80;
 
 
+      // -- Helper function for drawing sensor boxes --
+      // This is now safe to use after reducing stack usage elsewhere (e.g., calendar logic).
+      // Making it static is a good practice for stateless helper lambdas.
+      static auto draw_rounded_box = [&](int x, int y, int w, int h, int r, int thickness) {
+        it.filled_rectangle(x + r, y, w - 2 * r, thickness, COLOR_ON); // Top border
+        it.filled_rectangle(x + r, y + h - thickness, w - 2 * r, thickness, COLOR_ON); // Bottom border
+        it.filled_rectangle(x, y + r, thickness, h - 2 * r, COLOR_ON); // Left border
+        it.filled_rectangle(x + w - thickness, y + r, thickness, h - 2 * r, COLOR_ON); // Right border
+        it.filled_circle(x + r, y + r, r, COLOR_ON); // Top-left corner
+        it.filled_circle(x + w - r, y + r, r, COLOR_ON); // Top-right corner
+        it.filled_circle(x + r, y + h - r, r, COLOR_ON); // Bottom-left corner
+        it.filled_circle(x + w - r, y + h - r, r, COLOR_ON); // Bottom-right corner
+        it.filled_rectangle(x + thickness, y + thickness, w - 2 * thickness, h - 2 * thickness, COLOR_OFF); // Clear the inside
+      };
       // ===========================
 
 
@@ -370,15 +384,7 @@ display:
         // ==== Temperature Section ====
         int x = SENSOR_GRID_X;
         int y = SENSOR_GRID_Y;
-        it.filled_rectangle(x + SENSOR_BOX_R, y, SENSOR_BOX_W - 2 * SENSOR_BOX_R, SENSOR_BOX_THICKNESS, COLOR_ON); // Top border
-        it.filled_rectangle(x + SENSOR_BOX_R, y + SENSOR_BOX_H - SENSOR_BOX_THICKNESS, SENSOR_BOX_W - 2 * SENSOR_BOX_R, SENSOR_BOX_THICKNESS, COLOR_ON); // Bottom border
-        it.filled_rectangle(x, y + SENSOR_BOX_R, SENSOR_BOX_THICKNESS, SENSOR_BOX_H - 2 * SENSOR_BOX_R, COLOR_ON); // Left border
-        it.filled_rectangle(x + SENSOR_BOX_W - SENSOR_BOX_THICKNESS, y + SENSOR_BOX_R, SENSOR_BOX_THICKNESS, SENSOR_BOX_H - 2 * SENSOR_BOX_R, COLOR_ON); // Right border
-        it.filled_circle(x + SENSOR_BOX_R, y + SENSOR_BOX_R, SENSOR_BOX_R, COLOR_ON); // Top-left corner
-        it.filled_circle(x + SENSOR_BOX_W - SENSOR_BOX_R, y + SENSOR_BOX_R, SENSOR_BOX_R, COLOR_ON); // Top-right corner
-        it.filled_circle(x + SENSOR_BOX_R, y + SENSOR_BOX_H - SENSOR_BOX_R, SENSOR_BOX_R, COLOR_ON); // Bottom-left corner
-        it.filled_circle(x + SENSOR_BOX_W - SENSOR_BOX_R, y + SENSOR_BOX_H - SENSOR_BOX_R, SENSOR_BOX_R, COLOR_ON); // Bottom-right corner
-        it.filled_rectangle(x + SENSOR_BOX_THICKNESS, y + SENSOR_BOX_THICKNESS, SENSOR_BOX_W - 2 * SENSOR_BOX_THICKNESS, SENSOR_BOX_H - 2 * SENSOR_BOX_THICKNESS, COLOR_OFF); // Clear the inside
+        draw_rounded_box(x, y, SENSOR_BOX_W, SENSOR_BOX_H, SENSOR_BOX_R, SENSOR_BOX_THICKNESS);
         it.printf(x + 10, y + 10, id(sensor_font), "Temperature");
         it.printf(x + 45, y + 75, id(img_font_sensor), TextAlign::CENTER, "\U000F050F");
         it.printf(x + 75, y + 65, id(data_font), "%s%s", id(temp).state.c_str(), id(temp_unit).state.c_str());
@@ -386,15 +392,7 @@ display:
         // ==== Humidity Section ====
         x = SENSOR_GRID_X + SENSOR_BOX_W + SENSOR_GRID_GAP;
         // y is the same as Temperature
-        it.filled_rectangle(x + SENSOR_BOX_R, y, SENSOR_BOX_W - 2 * SENSOR_BOX_R, SENSOR_BOX_THICKNESS, COLOR_ON); // Top border
-        it.filled_rectangle(x + SENSOR_BOX_R, y + SENSOR_BOX_H - SENSOR_BOX_THICKNESS, SENSOR_BOX_W - 2 * SENSOR_BOX_R, SENSOR_BOX_THICKNESS, COLOR_ON); // Bottom border
-        it.filled_rectangle(x, y + SENSOR_BOX_R, SENSOR_BOX_THICKNESS, SENSOR_BOX_H - 2 * SENSOR_BOX_R, COLOR_ON); // Left border
-        it.filled_rectangle(x + SENSOR_BOX_W - SENSOR_BOX_THICKNESS, y + SENSOR_BOX_R, SENSOR_BOX_THICKNESS, SENSOR_BOX_H - 2 * SENSOR_BOX_R, COLOR_ON); // Right border
-        it.filled_circle(x + SENSOR_BOX_R, y + SENSOR_BOX_R, SENSOR_BOX_R, COLOR_ON); // Top-left corner
-        it.filled_circle(x + SENSOR_BOX_W - SENSOR_BOX_R, y + SENSOR_BOX_R, SENSOR_BOX_R, COLOR_ON); // Top-right corner
-        it.filled_circle(x + SENSOR_BOX_R, y + SENSOR_BOX_H - SENSOR_BOX_R, SENSOR_BOX_R, COLOR_ON); // Bottom-left corner
-        it.filled_circle(x + SENSOR_BOX_W - SENSOR_BOX_R, y + SENSOR_BOX_H - SENSOR_BOX_R, SENSOR_BOX_R, COLOR_ON); // Bottom-right corner
-        it.filled_rectangle(x + SENSOR_BOX_THICKNESS, y + SENSOR_BOX_THICKNESS, SENSOR_BOX_W - 2 * SENSOR_BOX_THICKNESS, SENSOR_BOX_H - 2 * SENSOR_BOX_THICKNESS, COLOR_OFF); // Clear the inside
+        draw_rounded_box(x, y, SENSOR_BOX_W, SENSOR_BOX_H, SENSOR_BOX_R, SENSOR_BOX_THICKNESS);
         it.printf(x + 10, y + 10, id(sensor_font), "Humidity");
         it.printf(x + 45, y + 75, id(img_font_sensor), TextAlign::CENTER, "\U000F058E");
         it.printf(x + 75, y + 65, id(data_font), "%s%%", id(humi).state.c_str());
@@ -402,15 +400,7 @@ display:
         // ==== Air Pressure Section ====
         x = SENSOR_GRID_X;
         y = SENSOR_GRID_Y + SENSOR_BOX_H + SENSOR_GRID_GAP;
-        it.filled_rectangle(x + SENSOR_BOX_R, y, SENSOR_BOX_W - 2 * SENSOR_BOX_R, SENSOR_BOX_THICKNESS, COLOR_ON); // Top border
-        it.filled_rectangle(x + SENSOR_BOX_R, y + SENSOR_BOX_H - SENSOR_BOX_THICKNESS, SENSOR_BOX_W - 2 * SENSOR_BOX_R, SENSOR_BOX_THICKNESS, COLOR_ON); // Bottom border
-        it.filled_rectangle(x, y + SENSOR_BOX_R, SENSOR_BOX_THICKNESS, SENSOR_BOX_H - 2 * SENSOR_BOX_R, COLOR_ON); // Left border
-        it.filled_rectangle(x + SENSOR_BOX_W - SENSOR_BOX_THICKNESS, y + SENSOR_BOX_R, SENSOR_BOX_THICKNESS, SENSOR_BOX_H - 2 * SENSOR_BOX_R, COLOR_ON); // Right border
-        it.filled_circle(x + SENSOR_BOX_R, y + SENSOR_BOX_R, SENSOR_BOX_R, COLOR_ON); // Top-left corner
-        it.filled_circle(x + SENSOR_BOX_W - SENSOR_BOX_R, y + SENSOR_BOX_R, SENSOR_BOX_R, COLOR_ON); // Top-right corner
-        it.filled_circle(x + SENSOR_BOX_R, y + SENSOR_BOX_H - SENSOR_BOX_R, SENSOR_BOX_R, COLOR_ON); // Bottom-left corner
-        it.filled_circle(x + SENSOR_BOX_W - SENSOR_BOX_R, y + SENSOR_BOX_H - SENSOR_BOX_R, SENSOR_BOX_R, COLOR_ON); // Bottom-right corner
-        it.filled_rectangle(x + SENSOR_BOX_THICKNESS, y + SENSOR_BOX_THICKNESS, SENSOR_BOX_W - 2 * SENSOR_BOX_THICKNESS, SENSOR_BOX_H - 2 * SENSOR_BOX_THICKNESS, COLOR_OFF); // Clear the inside
+        draw_rounded_box(x, y, SENSOR_BOX_W, SENSOR_BOX_H, SENSOR_BOX_R, SENSOR_BOX_THICKNESS);
         it.printf(x + 10, y + 10, id(sensor_font), "Air Pressure");
         it.printf(x + 45, y + 75, id(img_font_sensor), TextAlign::CENTER, "\U000F0D60");
         it.printf(x + 85, y + 50, id(data_font), "%s", id(press).state.c_str());
@@ -419,15 +409,7 @@ display:
         // ==== Wind Speed Section ====
         x = SENSOR_GRID_X + SENSOR_BOX_W + SENSOR_GRID_GAP;
         // y is the same as Air Pressure
-        it.filled_rectangle(x + SENSOR_BOX_R, y, SENSOR_BOX_W - 2 * SENSOR_BOX_R, SENSOR_BOX_THICKNESS, COLOR_ON); // Top border
-        it.filled_rectangle(x + SENSOR_BOX_R, y + SENSOR_BOX_H - SENSOR_BOX_THICKNESS, SENSOR_BOX_W - 2 * SENSOR_BOX_R, SENSOR_BOX_THICKNESS, COLOR_ON); // Bottom border
-        it.filled_rectangle(x, y + SENSOR_BOX_R, SENSOR_BOX_THICKNESS, SENSOR_BOX_H - 2 * SENSOR_BOX_R, COLOR_ON); // Left border
-        it.filled_rectangle(x + SENSOR_BOX_W - SENSOR_BOX_THICKNESS, y + SENSOR_BOX_R, SENSOR_BOX_THICKNESS, SENSOR_BOX_H - 2 * SENSOR_BOX_R, COLOR_ON); // Right border
-        it.filled_circle(x + SENSOR_BOX_R, y + SENSOR_BOX_R, SENSOR_BOX_R, COLOR_ON); // Top-left corner
-        it.filled_circle(x + SENSOR_BOX_W - SENSOR_BOX_R, y + SENSOR_BOX_R, SENSOR_BOX_R, COLOR_ON); // Top-right corner
-        it.filled_circle(x + SENSOR_BOX_R, y + SENSOR_BOX_H - SENSOR_BOX_R, SENSOR_BOX_R, COLOR_ON); // Bottom-left corner
-        it.filled_circle(x + SENSOR_BOX_W - SENSOR_BOX_R, y + SENSOR_BOX_H - SENSOR_BOX_R, SENSOR_BOX_R, COLOR_ON); // Bottom-right corner
-        it.filled_rectangle(x + SENSOR_BOX_THICKNESS, y + SENSOR_BOX_THICKNESS, SENSOR_BOX_W - 2 * SENSOR_BOX_THICKNESS, SENSOR_BOX_H - 2 * SENSOR_BOX_THICKNESS, COLOR_OFF); // Clear the inside
+        draw_rounded_box(x, y, SENSOR_BOX_W, SENSOR_BOX_H, SENSOR_BOX_R, SENSOR_BOX_THICKNESS);
         it.printf(x + 10, y + 10, id(sensor_font), "Wind Speed");
         it.printf(x + 45, y + 75, id(img_font_sensor), TextAlign::CENTER, "\U000F059D");
         it.printf(x + 85, y + 50, id(data_font), "%s", id(wind).state.c_str());
