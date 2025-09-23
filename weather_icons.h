@@ -3,7 +3,8 @@
 // and https://pictogrammers.com/library/mdi/icon/weather-cloudy
 
 // Map between Home Assistant weather states & MDI codes
-std::map<std::string, const char*> weather_icons {
+std::map<std::string, const char*> weather_icons 
+{
     {"clear-night", "\U000F0594"}, // weather-night
     {"cloudy", "\U000F0590"}, // weather-cloudy
     {"fog", "\U000F0591"}, // weather-fog
@@ -22,9 +23,11 @@ std::map<std::string, const char*> weather_icons {
 };
 
 // Helper - get weather icon for a given state
-const char* get_weather_icon(const std::string& state) {
+const char* get_weather_icon(const std::string& state)
+{
     auto it = weather_icons.find(state);
-    if (it != weather_icons.end()) {
+    if (it != weather_icons.end())
+    {
         return it->second;
     }
     //default to cloudy if state unknown

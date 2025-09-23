@@ -240,22 +240,6 @@ font:
     id: font1
     size: 24
 
-  - file: 'fonts/materialdesignicons-webfont.ttf'
-    id: font_mdi_battery
-    size: 40
-    glyphs: &mdi-battery-glyphs
-      - "\U000F0083" # Battery alert (0)
-      - "\U000F007A" # Battery 10
-      - "\U000F007B" # Battery 20
-      - "\U000F007C" # Battery 30
-      - "\U000F007D" # Battery 40
-      - "\U000F007E" # Battery 50
-      - "\U000F007F" # Battery 60
-      - "\U000F0080" # Battery 70
-      - "\U000F0081" # Battery 80
-      - "\U000F0082" # Battery 90
-      - "\U000F0079" # Battery 100
-
   - file: 'fonts/materialdesignicons-webfont.ttf' # Directory to save ttf file
     id: font_mdi_large
     size: 200
@@ -327,9 +311,7 @@ display:
       const int CALENDAR_TITLE_Y = 40;
       const int CALENDAR_CONTENT_Y_START = 80;
 
-
       // -- Helper function for drawing sensor boxes --
-      // This is now safe to use after reducing stack usage elsewhere (e.g., calendar logic).
       // Making it static is a good practice for stateless helper lambdas.
       static auto draw_rounded_box = [&](int x, int y, int w, int h, int r, int thickness) {
         it.filled_rectangle(x + r, y, w - 2 * r, thickness, COLOR_ON); // Top border
@@ -343,7 +325,6 @@ display:
         it.filled_rectangle(x + thickness, y + thickness, w - 2 * thickness, h - 2 * thickness, COLOR_OFF); // Clear the inside
       };
       // ===========================
-
 
       if (id(wifi_status) == 0)
       {

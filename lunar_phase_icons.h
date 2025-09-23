@@ -20,7 +20,8 @@
 // last_quarter: mdi:moon-last-quarter (\U000F0F20)
 // waning_crescent: mdi:moon-waning-crescent (\U000F0F21)
 
-static const std::map<std::string, const char*> lunar_phase_icon_map = {
+static const std::map<std::string, const char*> lunar_phase_icon_map = 
+{
     {"new_moon", "\U000F0F64"},
     {"waxing_crescent", "\U000F0F67"},
     {"first_quarter", "\U000F0F61"},
@@ -32,9 +33,11 @@ static const std::map<std::string, const char*> lunar_phase_icon_map = {
 };
 
 // Helper: get icon for a given lunar phase string
-inline const char* get_lunar_phase_icon(const std::string& phase) {
+inline const char* get_lunar_phase_icon(const std::string& phase)
+{
     auto it = lunar_phase_icon_map.find(phase);
-    if (it != lunar_phase_icon_map.end()) {
+    if (it != lunar_phase_icon_map.end())
+    {
         return it->second;
     }
     // Default to new moon if unknown
