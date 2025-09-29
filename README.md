@@ -52,4 +52,6 @@ Redesign layout (use Figma?) to cleanly incorporate all elements.
 
 Add upcoming weather forecasr - next 4-5 hours
 
+Change icon maps to use mapping module?
+
 Add wind chill/"feels like" temperature alongside actual temp
